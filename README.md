@@ -9,6 +9,7 @@ WordMorpher creates a mesmerizing visual effect where 4,000 individual particles
 ## Features
 
 - **Particle Ball Formation**: 4,000 particles arranged in a perfect sphere using uniform distribution
+- **Rotating Ball**: Smooth continuous rotation of the particle sphere
 - **Voice Recognition**: Speak a word to automatically create it from particles
 - **Continuous Voice Mode**: Keep speaking multiple words in sequence without stopping
 - **Manual Input**: Type any word and click "Create" to morph particles
@@ -16,6 +17,7 @@ WordMorpher creates a mesmerizing visual effect where 4,000 individual particles
 - **Color Customization**: Customize ball and text particle colors in real-time
 - **Font Style Selection**: Choose from 6 different fonts for text morphing
 - **Smooth Animation**: Physics-based easing with 60 FPS animation loop
+- **Optimized Spacing**: Smaller, well-spaced particles for distinct visibility
 - **Reset Functionality**: Return all particles to ball formation
 - **Responsive Canvas**: Automatically adjusts to window size
 - **Dark Theme**: Immersive black background with vibrant particle colors
@@ -47,11 +49,20 @@ WordMorpher creates a mesmerizing visual effect where 4,000 individual particles
 ```javascript
 - x, y: Current position
 - targetX, targetY: Destination coordinates
-- size: 2.5px (ball) or 3px (text)
+- baseAngle, baseRadius: Initial polar coordinates for rotation
+- isInBallMode: Boolean flag for rotation updates
+- size: 1.8px (ball) or 2px (text) - smaller for distinct visibility
 - color: rgba values (purple for ball, blue for text)
 - ease: 0.05 (controls movement speed)
 - friction: 0.9 (physics simulation)
 ```
+
+**Rotation System**
+- Global rotation angle increments at 0.005 radians per frame
+- Each particle stores its base angle and radius
+- Target position recalculated every frame: `angle = baseAngle + rotationAngle`
+- Only particles in ball mode receive rotation updates
+- Smooth, continuous rotation without affecting text morphing
 
 **Animation Loop**
 - Uses `requestAnimationFrame` for 60 FPS rendering
@@ -63,7 +74,7 @@ WordMorpher creates a mesmerizing visual effect where 4,000 individual particles
 **Scanning Process**
 1. Draw text on canvas using bold Verdana font (size: min(100px, canvas.width/10))
 2. Use `getImageData()` to read pixel data from entire canvas
-3. Sample every 7th pixel (gap=7) for performance optimization
+3. Sample every 10th pixel (gap=10) for optimal spacing and performance
 4. Check alpha channel value (>128 = opaque = text pixel)
 5. Store coordinates of all text pixels in array
 
@@ -71,8 +82,8 @@ WordMorpher creates a mesmerizing visual effect where 4,000 individual particles
 1. Shuffle particle array for organic transition effect
 2. First N particles (where N = text pixel count) → assigned to text positions
 3. Remaining particles → scattered randomly across screen (dimmed, smaller)
-4. Text particles: bright blue (#788CFF), size 3px
-5. Excess particles: dim purple (rgba(80,70,150,0.4)), size 2px
+4. Text particles: user-selected color, size 2px, ball mode disabled
+5. Excess particles: dim purple (rgba(80,70,150,0.4)), size 1.5px, ball mode disabled
 
 #### Voice Recognition
 
@@ -189,7 +200,9 @@ WordMorpher/
 ## Performance Considerations
 
 - **Particle Count**: 4,000 particles balanced for visual density vs performance
-- **Sampling Gap**: 7px gap reduces text coordinates from ~10,000 to manageable count
+- **Particle Size**: 1.8-2px for optimal rendering without overdraw
+- **Sampling Gap**: 10px gap provides distinct spacing while maintaining text readability
+- **Rotation**: Lightweight trigonometric calculations (0.005 rad/frame)
 - **RequestAnimationFrame**: Syncs with display refresh rate (typically 60 FPS)
 - **Easing Factor**: 0.05 provides smooth movement without lag
 

@@ -23,6 +23,7 @@ let fontStyle = 'Verdana';
 let trailEffect = false;
 let continuousVoiceMode = false;
 let recognition = null;
+let rotationAngle = 0; // Global rotation angle for ball formation
 
 // Settings event listeners
 ballColorPicker.addEventListener('change', (e) => {
@@ -126,8 +127,13 @@ window.addEventListener('resize', function() {
 // Particle Class
 class Particle {
     constructor(x, y) {
-        this.size = 2.5; // Larger particles for better distinctness
+        this.size = 1.8; // Smaller particles for better distinctness
         this.color = 'rgba(255, 255, 255, 0.8)';
+        
+        // Store initial angle and radius for rotation
+        this.baseAngle = Math.random() * Math.PI * 2;
+        this.baseRadius = Math.sqrt(Math.random()) * 150;
+        this.isInBallMode = true;
         
         // Define the random position in the ball formation
         this.setBallTarget();
@@ -145,13 +151,12 @@ class Particle {
 
     setBallTarget() {
         const radius = 150; // Larger radius for more spread out particles
-        // Random point in circle
-        const angle = Math.random() * Math.PI * 2;
-        // Use square root of random for uniform distribution
-        const r = Math.sqrt(Math.random()) * radius; 
         
-        this.targetX = canvas.width / 2 + Math.cos(angle) * r;
-        this.targetY = canvas.height / 2 + Math.sin(angle) * r;
+        // Calculate position using stored angle and rotation
+        const currentAngle = this.baseAngle + rotationAngle;
+        
+        this.targetX = canvas.width / 2 + Math.cos(currentAngle) * this.baseRadius;
+        this.targetY = canvas.height / 2 + Math.sin(currentAngle) * this.baseRadius;
         
         // Convert hex to rgba with alpha
         const hexToRgba = (hex, alpha) => {
@@ -162,10 +167,18 @@ class Particle {
         };
         
         this.color = hexToRgba(ballColor, 0.9);
-        this.size = 2.5; // Distinct particle size
+        this.size = 1.8; // Smaller distinct particle size
+        this.isInBallMode = true;
     }
 
     update() {
+        // If in ball mode, update target position for rotation
+        if (this.isInBallMode) {
+            const currentAngle = this.baseAngle + rotationAngle;
+            this.targetX = canvas.width / 2 + Math.cos(currentAngle) * this.baseRadius;
+            this.targetY = canvas.height / 2 + Math.sin(currentAngle) * this.baseRadius;
+        }
+        
         // Simple easing logic to move towards targetX, targetY
         const dx = this.targetX - this.x;
         const dy = this.targetY - this.y;
@@ -218,7 +231,7 @@ function scanText(text) {
     const data = pixels.data; // rgba array
     
     const textCoordinates = [];
-    const gap = 7; // Larger gap for clear, distinct spacing between particles
+    const gap = 10; // Increased gap for more spacing and distinct particles
     
     for (let y = 0; y < canvas.height; y += gap) {
         for (let x = 0; x < canvas.width; x += gap) {
@@ -251,6 +264,7 @@ function animateParticlesToText() {
             // Particle used for text
             particlesArray[i].targetX = coords[i].x;
             particlesArray[i].targetY = coords[i].y;
+            particlesArray[i].isInBallMode = false;
             
             // Convert hex to rgba
             const hexToRgba = (hex, alpha) => {
@@ -261,15 +275,16 @@ function animateParticlesToText() {
             };
             
             particlesArray[i].color = hexToRgba(textColor, 1);
-            particlesArray[i].size = 3; // Larger for text visibility
+            particlesArray[i].size = 2; // Smaller for text visibility
         } else {
             // Unused particle - scatter randomly across the screen
             particlesArray[i].targetX = Math.random() * canvas.width;
             particlesArray[i].targetY = Math.random() * canvas.height;
+            particlesArray[i].isInBallMode = false;
             
             // Make them visible but dimmer so they spread out across screen
             particlesArray[i].color = 'rgba(80, 70, 150, 0.4)'; 
-            particlesArray[i].size = 2;
+            particlesArray[i].size = 1.5;
         }
     }
 }
@@ -292,6 +307,9 @@ textInput.addEventListener('keypress', function (e) {
 
 // Animation Loop
 function animate() {
+    // Increment rotation angle for ball
+    rotationAngle += 0.005;
+    
     // Trail effect: use semi-transparent overlay instead of full clear
     if (trailEffect) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
