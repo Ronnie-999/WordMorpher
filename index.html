@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordMorpher - Morphing Particles To Text</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        #controls {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            background: rgba(20, 20, 25, 0.8);
+            padding: 10px 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(80, 80, 100, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+        }
+        input {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            width: 200px;
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
+        input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            width: 250px;
+            box-shadow: 0 0 0 2px rgba(100, 100, 255, 0.5);
+        }
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: capitalize;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(37, 117, 252, 0.4);
+            filter: brightness(1.1);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        #settings {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(20, 20, 25, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(80, 80, 100, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-size: 14px;
+            min-width: 200px;
+        }
+        #settings h3 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            color: #4d9fff;
+        }
+        .setting-row {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .setting-row label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .setting-row select {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            outline: none;
+            cursor: pointer;
+        }
+        .setting-row input[type="color"] {
+            width: 50px;
+            height: 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .setting-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas1"></canvas>
+    <div id="settings">
+        <h3>Settings</h3>
+        <div class="setting-row">
+            <label>Ball Color:</label>
+            <input type="color" id="ballColor" value="#6450c8">
+        </div>
+        <div class="setting-row">
+            <label>Text Color:</label>
+            <input type="color" id="textColor" value="#788cff">
+        </div>
+        <div class="setting-row">
+            <label>Font Style:</label>
+            <select id="fontStyle">
+                <option value="Verdana">Verdana</option>
+                <option value="Arial">Arial</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Impact">Impact</option>
+            </select>
+        </div>
+        <div class="setting-row">
+            <label>Particle Trails:</label>
+            <input type="checkbox" id="trailEffect">
+        </div>
+        <div class="setting-row">
+            <label>Continuous Voice:</label>
+            <input type="checkbox" id="continuousVoice">
+        </div>
+    </div>
+    <div id="controls">
+        <input type="text" id="textInput" placeholder="Enter Text" value="hello">
+        <button id="createBtn">Create</button>
+        <button id="voiceBtn" style="background: linear-gradient(135deg, #4d9fff 0%, #2575fc 100%);">Speak</button>
+        <button id="resetBtn" style="background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);">Reset</button>
+    </div>
+    <script src="code.js"></script>
+</body>
+</html>

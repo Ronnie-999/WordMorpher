@@ -9,53 +9,6 @@ const createBtn = document.getElementById('createBtn');
 const voiceBtn = document.getElementById('voiceBtn');
 const resetBtn = document.getElementById('resetBtn');
 
-// Settings controls
-const ballColorPicker = document.getElementById('ballColor');
-const textColorPicker = document.getElementById('textColor');
-const fontStyleSelect = document.getElementById('fontStyle');
-const trailEffectCheckbox = document.getElementById('trailEffect');
-const continuousVoiceCheckbox = document.getElementById('continuousVoice');
-
-// Settings values
-let ballColor = '#6450c8';
-let textColor = '#788cff';
-let fontStyle = 'Verdana';
-let trailEffect = false;
-let continuousVoiceMode = false;
-let recognition = null;
-
-// Settings event listeners
-ballColorPicker.addEventListener('change', (e) => {
-    ballColor = e.target.value;
-    resetToBall();
-});
-
-textColorPicker.addEventListener('change', (e) => {
-    textColor = e.target.value;
-    if (textInput.value.trim()) {
-        animateParticlesToText();
-    }
-});
-
-fontStyleSelect.addEventListener('change', (e) => {
-    fontStyle = e.target.value;
-    if (textInput.value.trim()) {
-        animateParticlesToText();
-    }
-});
-
-trailEffectCheckbox.addEventListener('change', (e) => {
-    trailEffect = e.target.checked;
-});
-
-continuousVoiceCheckbox.addEventListener('change', (e) => {
-    continuousVoiceMode = e.target.checked;
-    if (recognition) {
-        recognition.continuous = continuousVoiceMode;
-    }
-});
-
-// Speech Recognition Setup
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if (!SpeechRecognition) {
@@ -63,45 +16,41 @@ if (!SpeechRecognition) {
     voiceBtn.style.opacity = '0.5';
     voiceBtn.style.cursor = 'not-allowed';
 } else {
-    recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
-    recognition.continuous = continuousVoiceMode;
+    recognition.continuous = false;
 
     let listening = false;
-    let resultIndex = 0;
+
+    
 
     recognition.addEventListener('start', () => {
         listening = true;
-        voiceBtn.textContent = 'ðŸŽ¤ Listening...';
-        voiceBtn.style.background = 'linear-gradient(135deg, #00bfa5 0%, #1de9b6 100%)';
+        setVoiceState('Listening for a single wordâ€¦', true);
     });
 
     recognition.addEventListener('end', () => {
         listening = false;
-        voiceBtn.textContent = 'Speak';
-        voiceBtn.style.background = 'linear-gradient(135deg, #4d9fff 0%, #2575fc 100%)';
-        resultIndex = 0;
+        setVoiceState('Voice command ready', false);
     });
 
     recognition.addEventListener('result', (event) => {
-        // In continuous mode, process each new result
-        for (let i = resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i]?.[0]?.transcript?.trim();
-            if (!transcript) continue;
-
-            const spokenWord = transcript.split(/\s+/)[0];
-            textInput.value = spokenWord;
-            animateParticlesToText();
-            resultIndex = i + 1;
+        const transcript = event.results[0]?.[0]?.transcript?.trim();
+        if (!transcript) {
+            return;
         }
+
+        const spokenWord = transcript.split(/\s+/)[0];
+        textInput.value = spokenWord;
+        setVoiceState(`Heard â€œ${spokenWord}â€. Creatingâ€¦`, false);
+        animateParticlesToText();
     });
 
     recognition.addEventListener('error', (event) => {
-        console.error('Speech recognition error:', event.error);
-        voiceBtn.textContent = 'Speak';
-        voiceBtn.style.background = 'linear-gradient(135deg, #4d9fff 0%, #2575fc 100%)';
+        setVoiceState(`Voice error: ${event.error}`, false);
+        console.error('SpeechRecognition error:', event.error);
     });
 
     voiceBtn.addEventListener('click', () => {
@@ -111,7 +60,7 @@ if (!SpeechRecognition) {
             try {
                 recognition.start();
             } catch (error) {
-                console.warn('Recognition start failed:', error);
+                console.warn('Voice recognition could not start', error);
             }
         }
     });
@@ -153,15 +102,8 @@ class Particle {
         this.targetX = canvas.width / 2 + Math.cos(angle) * r;
         this.targetY = canvas.height / 2 + Math.sin(angle) * r;
         
-        // Convert hex to rgba with alpha
-        const hexToRgba = (hex, alpha) => {
-            const r = parseInt(hex.slice(1, 3), 16);
-            const g = parseInt(hex.slice(3, 5), 16);
-            const b = parseInt(hex.slice(5, 7), 16);
-            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        };
-        
-        this.color = hexToRgba(ballColor, 0.9);
+        // Ball Color: Brighter purple/blue for better visibility
+        this.color = 'rgba(100, 80, 200, 0.9)'; // Brighter purple
         this.size = 2.5; // Distinct particle size
     }
 
@@ -202,7 +144,7 @@ function scanText(text) {
     
     // Configurable font size based on screen width
     const fontSize = Math.min(100, canvas.width / 10);
-    ctx.font = 'bold ' + fontSize + 'px ' + fontStyle;
+    ctx.font = 'bold ' + fontSize + 'px Verdana';
     ctx.fillStyle = 'white';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -252,15 +194,8 @@ function animateParticlesToText() {
             particlesArray[i].targetX = coords[i].x;
             particlesArray[i].targetY = coords[i].y;
             
-            // Convert hex to rgba
-            const hexToRgba = (hex, alpha) => {
-                const r = parseInt(hex.slice(1, 3), 16);
-                const g = parseInt(hex.slice(3, 5), 16);
-                const b = parseInt(hex.slice(5, 7), 16);
-                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-            };
-            
-            particlesArray[i].color = hexToRgba(textColor, 1);
+            // Text Color: Bright, distinct color
+            particlesArray[i].color = 'rgba(120, 150, 255, 1)'; // Bright blue for text
             particlesArray[i].size = 3; // Larger for text visibility
         } else {
             // Unused particle - scatter randomly across the screen
@@ -292,14 +227,7 @@ textInput.addEventListener('keypress', function (e) {
 
 // Animation Loop
 function animate() {
-    // Trail effect: use semi-transparent overlay instead of full clear
-    if (trailEffect) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < particlesArray.length; i++) {
         particlesArray[i].update();
         particlesArray[i].draw();
